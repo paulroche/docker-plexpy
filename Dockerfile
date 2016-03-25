@@ -1,23 +1,18 @@
 FROM ubuntu:14.04
 
-MAINTAINER Tyler Payne <tyler43636@gmail.com>
+MAINTAINER Paul Roche <paul@dreamisle.ca>
+
+RUN apt-get -qq update             \
+ && apt-get -yf install supervisor \
+                        git        \
+ && rm -fr /var/lib/apt/lists/*
+
+# clone repo
+RUN git clone https://github.com/drzoidberg33/plexpy.git /plexpy
 
 # add supervisor file for application
-ADD plexpy.conf /etc/supervisor/conf.d/
+COPY assets/configs/supervisor/plexpy.conf /etc/supervisor/conf.d/
 
-# add bash scripts
-RUN mkdir /scripts
-ADD scripts/*.sh /scripts/
+COPY assets/scripts/startup.sh /opt/startup.sh
 
-# make executable and run bash scripts to install app
-RUN chmod +x /scripts/*.sh && \
-	/bin/bash /scripts/install.sh
-
-# map /config to host defined config path (used to store configuration from app)
-VOLUME /config
-
-# expose the default port for plexpy
-EXPOSE 8181
-
-# run script to set uid, gid and permissions
-CMD ["/bin/bash", "/scripts/init.sh"]
+ENTRYPOINT [ "/opt/startup.sh" ]
